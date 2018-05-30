@@ -136,43 +136,8 @@ else()
     message(FATAL_ERROR "Unsupported Platform!")
 endif()
 
-file(GLOB TEXTURES
-  "${PROJECT_SOURCE_DIR}/cube/*.ppm"
-  )
-file(COPY ${TEXTURES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-
-# Predefine loader root as a cmake cache variable for cmake-gui
-set(LOADER_REPO_ROOT "LOADER-NOTFOUND" CACHE PATH "Absolute path to the root of the loader repository")
-
-if(LOADER_REPO_ROOT)
-    message(STATUS "Using user-supplied path to locate Vulkan")
-    if(WIN32)
-        set (LOADER_SEARCH_PATHS
-            "${LOADER_REPO_ROOT}/${BUILDTGT_DIR}/loader/${DEBUG_DECORATION}"
-            "${LOADER_REPO_ROOT}/${BUILDTGT_DIR}/loader/${RELEASE_DECORATION}"
-            "${LOADER_REPO_ROOT}/lib"
-            "${LOADER_REPO_ROOT}/lib32"
-            )
-    else()
-        set (LOADER_SEARCH_PATHS
-            "${LOADER_REPO_ROOT}/${BUILDTGT_DIR}/loader"
-            "${LOADER_REPO_ROOT}/x86_64/lib"
-            "${LOADER_REPO_ROOT}/source/lib"
-            )
-    endif()
-
-    find_library(LIBVK NAMES vulkan vulkan-1
-        HINTS ${LOADER_SEARCH_PATHS}
-        )
-    message(STATUS "Found Vulkan: ${LIBVK}")
-else()
-    message(STATUS "Using find_package to locate Vulkan")
-    find_package(Vulkan)
-    set (LIBVK "Vulkan::Vulkan")
-endif()
 
 if(WIN32)
     # Use static MSVCRT libraries

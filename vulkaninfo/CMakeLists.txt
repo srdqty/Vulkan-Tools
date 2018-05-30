@@ -42,43 +42,13 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     endif()
 endif()
 
-# Predefine loader root as a cmake cache variable for cmake-gui
-set(LOADER_REPO_ROOT "LOADER-NOTFOUND" CACHE PATH "Absolute path to the root of the loader repository")
-
-if(LOADER_REPO_ROOT)
-    message(STATUS "Using user-supplied path to locate Vulkan")
-    if(WIN32)
-        set (LOADER_SEARCH_PATHS
-            "${LOADER_REPO_ROOT}/${BUILDTGT_DIR}/loader/${DEBUG_DECORATION}"
-            "${LOADER_REPO_ROOT}/${BUILDTGT_DIR}/loader/${RELEASE_DECORATION}"
-            )
-    else()
-        set (LOADER_SEARCH_PATHS
-            "${LOADER_REPO_ROOT}/${BUILDTGT_DIR}/loader"
-            )
-    endif()
-
-    find_library(LIBVK NAMES vulkan vulkan-1
-        HINTS ${LOADER_SEARCH_PATHS}
-        )
-    message(STATUS "Found Vulkan: ${LIBVK}")
-    if(APPLE)
-        target_link_libraries(vulkaninfo ${LIBVK} "-framework AppKit -framework QuartzCore")
-        target_include_directories(vulkaninfo PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/macOS/vulkaninfo)
-    else()
-        target_link_libraries(vulkaninfo ${LIBVK})
-    endif()
- else()
-    message(STATUS "Using find_package to locate Vulkan")
-    find_package(Vulkan)
-    set (LIBVK "Vulkan::Vulkan")
-    if(APPLE)
-        target_link_libraries(vulkaninfo ${LIBVK} "-framework AppKit -framework QuartzCore")
-        target_include_directories(vulkaninfo PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/macOS/vulkaninfo)
-    else()
-        target_link_libraries(vulkaninfo ${LIBVK})
-    endif()
+if(APPLE)
+    target_link_libraries(vulkaninfo ${LIBVK} "-framework AppKit -framework QuartzCore")
+    target_include_directories(vulkaninfo PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/macOS/vulkaninfo)
+else()
+    target_link_libraries(vulkaninfo ${LIBVK})
 endif()
+
 
 # Create vulkaninfo application bundle for MacOS
 if(APPLE)

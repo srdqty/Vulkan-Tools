@@ -8,11 +8,12 @@ project (Vulkan-Tools)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-# If CMAKE 3.7+, use FindVulkan
-if (NOT CMAKE_VERSION VERSION_LESS 3.7.0)
-    message(STATUS "Using find_package to locate Vulkan")
-    find_package(Vulkan)
-endif()
+message(STATUS "Using find_package to locate Vulkan")
+find_package(VulkanRepo REQUIRED)
+set (LIBVK "Vulkan::Vulkan")
+message(STATUS "Vulkan FOUND = ${Vulkan_FOUND}")
+message(STATUS "Vulkan include = ${Vulkan_INCLUDE_DIR}")
+message(STATUS "Vulkan lib = ${Vulkan_LIBRARY}")
 
 include(GNUInstallDirs)
 # Set a better default install location for Windows only if the user did not provide one.
@@ -30,15 +31,7 @@ endif()
 
 # Enable cmake folders
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set(TOOLS_TARGET_FOLDER lvl_cmake_targets)
-
-# Output warning if vulkan headers submodule contents are not present
-if (NOT EXISTS "${PROJECT_SOURCE_DIR}/Vulkan-Headers/include/vulkan/vulkan_core.h")
-    message(FATAL_ERROR "Please run 'git submodule update --init' before running cmake")
-endif()
-
-# Header file for CMake settings
-include_directories("${PROJECT_SOURCE_DIR}/Vulkan-Headers/include")
+set(TOOLS_TARGET_FOLDER ${CMAKE_INSTALL_PREFIX})
 
 if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
     set(COMMON_COMPILE_FLAGS "-Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers")
