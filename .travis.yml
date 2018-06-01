@@ -46,14 +46,6 @@ before_install:
       # Install the appropriate Linux packages.
       sudo apt-get -qq update
       sudo apt-get -y install libxkbcommon-dev libwayland-dev libmirclient-dev libxrandr-dev libx11-xcb-dev
-      # Get a prebuilt shader compiler (glslangValidator) so that we don't have to build all of glslang
-      mkdir glslang
-      cd glslang
-      wget https://github.com/KhronosGroup/glslang/releases/download/master-tot/glslang-master-linux-Release.zip
-      unzip -u -q glslang-master-linux-Release.zip
-      cd ..
-      export PATH=${TRAVIS_BUILD_DIR}/glslang/bin:$PATH
-      glslangValidator --version
     fi
   - |
     if [[ "$VULKAN_BUILD_TARGET" == "ANDROID" ]]; then
@@ -79,14 +71,23 @@ script:
   - set -e
   - |
     if [[ "$VULKAN_BUILD_TARGET" == "LINUX" ]]; then
-      # Build Vulkan-Loader for Vulkan-Tools
+      # Build Vulkan-Headers and Vulkan-Loader for Vulkan-Tools
+      cd ${TRAVIS_BUILD_DIR}
+      git clone https://github.com/KhronosGroup/Vulkan-Headers.git
+      cd Vulkan-Headers
+      mkdir build
+      cd build
+      cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=${TRAVIS_BUILD_DIR}/Vulkan-Headers/build/install ..
+      make -j $core_count
+      make install
       cd ${TRAVIS_BUILD_DIR}
       git clone --recurse-submodules https://github.com/KhronosGroup/Vulkan-Loader.git
       cd Vulkan-Loader
       mkdir build
       cd build
-      cmake -DCMAKE_BUILD_TYPE=Debug ..
+      cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=${TRAVIS_BUILD_DIR}/Vulkan-Loader/build/install ..
       make -j $core_count
+      make install
       cd ${TRAVIS_BUILD_DIR}
     fi
   - |
@@ -95,19 +96,20 @@ script:
       cd ${TRAVIS_BUILD_DIR}
       mkdir build
       cd build
-      cmake -DLOADER_REPO_ROOT=${TRAVIS_BUILD_DIR}/Vulkan-Loader -DCMAKE_BUILD_TYPE=Debug ..
+      cmake -DVULKAN_HEADERS_INSTALL_DIR=${TRAVIS_BUILD_DIR}/Vulkan-Headers/build/install -DVULKAN_LOADER_INSTALL_DIR=${TRAVIS_BUILD_DIR}/Vulkan-Loader/build/install -DCMAKE_BUILD_TYPE=Debug ..
       make -j $core_count
       cd ${TRAVIS_BUILD_DIR}
     fi
   - |
-    if [[ "$VULKAN_BUILD_TARGET" == "LINUX" ]]; then
-      # Run vulkaninfo as a test
-      cd ${TRAVIS_BUILD_DIR}
-      cd build/vulkaninfo
-      ldd vulkaninfo
-      VK_ICD_FILENAMES=../icd/VkICD_mock_icd.json ./vulkaninfo
-      cd ${TRAVIS_BUILD_DIR}
-    fi
+    # Add test back in when config process is decided
+    #if [[ "$VULKAN_BUILD_TARGET" == "LINUX" ]]; then
+    #  # Run vulkaninfo as a test
+    #  cd ${TRAVIS_BUILD_DIR}
+    #  cd build/vulkaninfo
+    #  ldd vulkaninfo
+    #  VK_ICD_FILENAMES=../icd/VkICD_mock_icd.json ./vulkaninfo
+    #  cd ${TRAVIS_BUILD_DIR}
+    #fi
   - |
     if [[ "$VULKAN_BUILD_TARGET" == "ANDROID" ]]; then
       pushd ${TRAVIS_BUILD_DIR}/cube/android
